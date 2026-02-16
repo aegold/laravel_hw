@@ -15,12 +15,24 @@ class CheckAge
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $age = $request->age;
-
-        if ($age < 18) {
-            return response('KHÔNG ĐỦ TUỔI', 403);
+        $age = session('age');
+        
+        // Kiểm tra nếu tuổi không tồn tại hoặc không phải số
+        if ($age === null || !is_numeric($age)) {
+            return response('không được phép truy cập', 403);
         }
-
+        
+        // Chuyển đổi sang số nguyên
+        $age = (int)$age;
+        
+        // Kiểm tra nếu tuổi < 18
+        if ($age < 18) {
+            return response('không được phép truy cập', 403);
+        }
+        
+        // Nếu >= 18, cho phép truy cập và thông báo đủ tuổi
+        session()->flash('age_check', 'đủ tuổi');
         return $next($request);
     }
 }
+

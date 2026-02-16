@@ -8,49 +8,68 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function showRegister()
+    // Show signin form (demo style with multiple fields)
+    public function signin()
     {
-        return view('auth.register');
+        return view('auth.signin');
     }
-
-    public function register(Request $request)
+    
+    // Check signin - simplified for username + password only
+    public function checkSignin(Request $request)
     {
+        // Validate input
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'username' => 'required|email',
+            'password' => 'required'
         ]);
-
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        return redirect('/auth/login');
-    }
-
-    public function showLogin()
-    {
-        return view('auth.login');
-    }
-
-    public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            return redirect('/');
+        
+        // Try to find user by email (using username as email)
+        $user = User::where('email', $request->input('username'))->first();
+        
+        if ($user && Hash::check($request->input('password'), $user->password)) {
+            Auth::login($user);
+            return redirect('/')->with('success', 'Đăng nhập thành công!');
         }
-
-        return back()->withErrors([
-            'email' => 'Email hoặc mật khẩu sai'
-        ]);
+        
+        return back()->with('error', 'Thông tin đăng nhập không chính xác');
     }
 
+    // Show signup form (demo style)
+    public function signup()
+    {
+        return view('auth.signup');
+    }
+    
+    // Check signup - adapted for demo form fields
+    public function checkSignup(Request $request)
+    {
+        // Validate demo form fields
+        $validated = $request->validate([
+            'username' => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
+            'repass' => 'required|same:password',
+            'mssv' => 'nullable',
+            'class' => 'nullable',
+            'gender' => 'nullable'
+        ]);
+
+        // Create user with username as email
+        $user = User::create([
+            'name' => $request->input('username'), // Use username as name
+            'email' => $request->input('username'),
+            'password' => Hash::make($request->input('password')),
+        ]);
+
+        // Auto login after registration
+        Auth::login($user);
+        
+        return redirect('/')->with('success', 'Đăng ký thành công!');
+    }
+    
+    // Logout
     public function logout()
     {
         Auth::logout();
-        return redirect('/auth/login');
+        return redirect('/signin')->with('success', 'Đã đăng xuất');
     }
 }

@@ -50,3 +50,16 @@ yarn-error.log*
 # Misc
 *.swp
 *.bak
+
+# Backup files and folders
+*_backup_*/
+views_old_*/
+*.backup
+test_backup_*/
+
+# Sync scripts and outputs
+sync_demo_to_test.ps1
+rollback.ps1
+SYNC_SCRIPT_README.md
+sync_output.txt
+dry_run_output.txt
